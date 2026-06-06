@@ -18,13 +18,29 @@ set -euo pipefail
 YEAR="${1:-2025}"
 
 # NOAA file naming pattern. The "c{CREATED_DATE}" portion changes when NOAA
-# republishes a year. Look at https://www.ncei.noaa.gov/data/storm-events/files/
-# and update CREATED_DATE for the year you want.
-CREATED_DATE="20260526"
+# republishes a year. Look at https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/
+# This code will select the most recent date for the given year.
 
-#BASE_URL="https://www.ncei.noaa.gov/data/storm-events/files"
 BASE_URL="https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/"
-FILE_NAME="StormEvents_details-ftp_v1.0_d${YEAR}_c${CREATED_DATE}.csv.gz"
+
+get_latest_file_for_year() {
+  local year="$1"
+
+  curl -s "${BASE_URL}" \
+    | grep "StormEvents_details-ftp_v1.0_d${year}_c" \
+    | sed -E 's/.*href="([^"]+)".*/\1/' \
+    | grep '\.csv\.gz$' \
+    | sort \
+    | tail -n 1
+}
+
+FILE_NAME="$(get_latest_file_for_year "${YEAR}")"
+
+if [ -z "${FILE_NAME}" ]; then
+  echo "ERROR: Could not find StormEvents details file for year ${YEAR} at ${BASE_URL}" >&2
+  exit 1
+fi
+
 URL="${BASE_URL}/${FILE_NAME}"
 
 RAW_DIR="data/raw"
