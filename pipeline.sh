@@ -7,8 +7,6 @@
 #
 # Requires: bash, curl, gunzip, ogr2ogr (GDAL >= 3.5)
 #
-# This is a starter scaffold. Read the comments. Replace the [TODO] markers
-# with the actual logic. Do not change the structure unless you have a reason.
 
 set -euo pipefail
 
@@ -17,14 +15,15 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 
 # Year to pull. Override by passing as the first argument.
-YEAR="${1:-2024}"
+YEAR="${1:-2025}"
 
 # NOAA file naming pattern. The "c{CREATED_DATE}" portion changes when NOAA
 # republishes a year. Look at https://www.ncei.noaa.gov/data/storm-events/files/
 # and update CREATED_DATE for the year you want.
-CREATED_DATE="20250101"
+CREATED_DATE="20260526"
 
-BASE_URL="https://www.ncei.noaa.gov/data/storm-events/files"
+#BASE_URL="https://www.ncei.noaa.gov/data/storm-events/files"
+BASE_URL="https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/"
 FILE_NAME="StormEvents_details-ftp_v1.0_d${YEAR}_c${CREATED_DATE}.csv.gz"
 URL="${BASE_URL}/${FILE_NAME}"
 
@@ -41,6 +40,7 @@ OUT_PARQUET="${PROCESSED_DIR}/storms_${YEAR}.parquet"
 echo "[1/4] Setting up directories"
 # [TODO] Use mkdir -p to create RAW_DIR and PROCESSED_DIR. Both should be
 # safe to call even if the directories already exist.
+mkdir -p data/raw data/processed
 
 # -----------------------------------------------------------------------------
 # Step 2: Download the raw file
@@ -54,14 +54,27 @@ echo "[2/4] Downloading ${FILE_NAME}"
 #
 # Skip the download if the file already exists (idempotency).
 
+if [ -f "${RAW_GZ}" ]; then
+  echo "    File already exists at ${RAW_GZ}, skipping download."
+else
+  curl -L --fail -o "${RAW_GZ}" "${URL}"
+fi
+
 # -----------------------------------------------------------------------------
 # Step 3: Decompress
 # -----------------------------------------------------------------------------
 
-echo "[3/4] Decompressing"
 # [TODO] Use gunzip to decompress RAW_GZ into RAW_CSV.
 # The -k flag keeps the original .gz so the pipeline can rerun.
 # Skip this step if RAW_CSV already exists.
+
+echo "[3/4] Unzipping ${FILE_NAME}"
+
+if [ -f "${RAW_CSV}" ]; then
+  echo "    Uncompressed file already exists at ${RAW_CSV}, skipping gunzip."
+else
+  gunzip -k "${RAW_GZ}"
+fi
 
 # -----------------------------------------------------------------------------
 # Step 4: Convert CSV to GeoParquet
@@ -80,8 +93,18 @@ echo "[4/4] Converting to GeoParquet"
 #
 # Use -f Parquet for the output format.
 #
-# Tip: ask your AI pair (see R1.3 prompts 4 and 6) for the exact ogr2ogr
-# command, then verify the flags against `ogr2ogr --help` before running.
+
+echo "[4/4] Converting CSV to GeoParquet"
+
+if [ -f "${OUT_PARQUET}" ]; then
+  echo "    GeoParquet already exists at ${OUT_PARQUET}, skipping ogr2ogr."
+else
+  ogr2ogr \
+    -f "Parquet" "${OUT_PARQUET}" "${RAW_CSV}" \
+    -oo X_POSSIBLE_NAMES=BEGIN_LON \
+    -oo Y_POSSIBLE_NAMES=BEGIN_LAT \
+    -a_srs "EPSG:4326"
+fi
 
 echo "Done. Output: ${OUT_PARQUET}"
 echo "Open it in DuckDB:"
