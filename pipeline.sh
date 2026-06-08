@@ -23,6 +23,22 @@ YEAR="${1:-2025}"
 
 BASE_URL="https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/"
 
+# Discover available years from NOAA directory listing
+YEARS=$(curl -s "${BASE_URL}" \
+  | grep 'StormEvents_details-ftp_v1.0_d' \
+  | sed -E 's/.*StormEvents_details-ftp_v1.0_d([0-9]{4}).*/\1/' \
+  | sort -u)
+
+MIN_YEAR=$(echo "${YEARS}" | head -n1)
+MAX_YEAR=$(echo "${YEARS}" | tail -n1)
+
+echo "Valid years are between ${MIN_YEAR} and ${MAX_YEAR} (based on NOAA's files)."
+
+if [ "${YEAR}" -lt "${MIN_YEAR}" ] || [ "${YEAR}" -gt "${MAX_YEAR}" ]; then
+  echo "Valid years are between ${MIN_YEAR} and ${MAX_YEAR} (based on NOAA's files)."
+  exit 1
+fi
+
 get_latest_file_for_year() {
   local year="$1"
 

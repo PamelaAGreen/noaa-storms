@@ -37,6 +37,8 @@ To run for a specific year:
 
  * Automatically discovers the most recent StormEvents file for the specified year by parsing NOAA’s directory index, so the pipeline keeps working even if exact filenames or created dates change.
 
+ * Implemented a guard that discovers the available years from NOAA’s directory listing and validates user input against that range, so the script fails fast with a clear message when the year is invalid.
+
  * Learned to use Git effectively inside VS Code, including options for staging files, understanding commit alternatives, and configuring .gitignore to keep large raw data (data/, .DS_Store) out of version control.
 
  * Set up a dedicated geospatial environment using mamba (including GDAL and the GeoParquet plugin) to run the shell script.
