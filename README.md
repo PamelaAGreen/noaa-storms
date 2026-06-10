@@ -4,7 +4,7 @@ A one-command pipeline that downloads a year of NOAA Storm Events data, converts
 
 ## What it does
 
-`pipeline.sh` takes a year (default: 2025), pulls the most recent raw `details` file from NOAA's public archive, decompresses it, and converts it to a single GeoParquet file at `data/processed/storms_{YEAR}.parquet`.
+`pipeline.sh` takes a year (default: 2025), pulls the most recent raw `details` file from NOAA's public archive, decompresses it, and converts it to a single GeoParquet file at `data/processed/storms_{YEAR}_c${CREATED_DATE}.parquet`.
 
 Total runtime: about 90 seconds for a typical year on a home internet connection.
 
@@ -38,8 +38,6 @@ To run for a specific year:
  * Automatically discovers the most recent StormEvents file for the specified year by parsing NOAA’s directory index, so the pipeline keeps working even if exact filenames or created dates change.
 
  * Implemented a guard that discovers the available years from NOAA’s directory listing and validates user input against that range, so the script fails fast with a clear message when the year is invalid.
-
- * Learned to use Git effectively inside VS Code, including options for staging files, understanding commit alternatives, and configuring .gitignore to keep large raw data (data/, .DS_Store) out of version control.
 
  * Set up a dedicated geospatial environment using mamba (including GDAL and the GeoParquet plugin) to run the shell script.
 
