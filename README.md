@@ -39,8 +39,6 @@ To run for a specific year:
 
  * Implemented a guard that discovers the available years from NOAA’s directory listing and validates user input against that range, so the script fails fast with a clear message when the year is invalid.
 
- * Set up a dedicated geospatial environment using mamba (including GDAL and the GeoParquet plugin) to run the shell script.
-
  * Practiced safe scripting habits (set -euo pipefail, existence checks for files and outputs, clear logging of each pipeline step), making the workflow clearer, safer, and easier for others to review and modify.
 
 ## Stack
