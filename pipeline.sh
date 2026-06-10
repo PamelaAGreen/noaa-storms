@@ -57,13 +57,22 @@ if [ -z "${FILE_NAME}" ]; then
   exit 1
 fi
 
+# Extract file creation date (YYYYMMDD) from the NOAA filename
+CREATED_DATE=$(
+  echo "${FILE_NAME}" \
+    | sed -E 's/.*_c([0-9]{8})\.csv\.gz/\1/'
+)
+
+echo "Using created date ${CREATED_DATE} from ${FILE_NAME}"
+
 URL="${BASE_URL}/${FILE_NAME}"
 
 RAW_DIR="data/raw"
 PROCESSED_DIR="data/processed"
 RAW_GZ="${RAW_DIR}/${FILE_NAME}"
 RAW_CSV="${RAW_DIR}/${FILE_NAME%.gz}"
-OUT_PARQUET="${PROCESSED_DIR}/storms_${YEAR}.parquet"
+#OUT_PARQUET="${PROCESSED_DIR}/storms_${YEAR}.parquet"
+OUT_PARQUET="${PROCESSED_DIR}/storms_${YEAR}_c${CREATED_DATE}.parquet"
 
 # -----------------------------------------------------------------------------
 # Step 1: Set up directories
